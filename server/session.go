@@ -262,6 +262,7 @@ func (s *Server) trySessionLogin(ctx context.Context, r *http.Request, w http.Re
 		UserID:            ui.Claims.UserID,
 		Username:          ui.Claims.Username,
 		PreferredUsername: ui.Claims.PreferredUsername,
+		Picture:           ui.Claims.Picture,
 		Email:             ui.Claims.Email,
 		EmailVerified:     ui.Claims.EmailVerified,
 		Groups:            ui.Claims.Groups,

@@ -41,6 +41,7 @@ type Identity struct {
 	PreferredUsername string
 	Email             string
 	EmailVerified     bool
+	Picture           string
 
 	Groups []string
 

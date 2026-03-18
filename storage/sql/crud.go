@@ -130,20 +130,20 @@ func (c *conn) CreateAuthRequest(ctx context.Context, a storage.AuthRequest) err
 			id, client_id, response_types, scopes, redirect_uri, nonce, state,
 			force_approval_prompt, logged_in,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data,
 			expiry,
 			code_challenge, code_challenge_method,
 			hmac_key
 		)
 		values (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
 		);
 	`,
 		a.ID, a.ClientID, encoder(a.ResponseTypes), encoder(a.Scopes), a.RedirectURI, a.Nonce, a.State,
 		a.ForceApprovalPrompt, a.LoggedIn,
 		a.Claims.UserID, a.Claims.Username, a.Claims.PreferredUsername,
-		a.Claims.Email, a.Claims.EmailVerified, encoder(a.Claims.Groups),
+		a.Claims.Email, a.Claims.EmailVerified, encoder(a.Claims.Groups), a.Claims.Picture,
 		a.ConnectorID, a.ConnectorData,
 		a.Expiry,
 		a.PKCE.CodeChallenge, a.PKCE.CodeChallengeMethod,
@@ -176,18 +176,18 @@ func (c *conn) UpdateAuthRequest(ctx context.Context, id string, updater func(a 
 				nonce = $5, state = $6, force_approval_prompt = $7, logged_in = $8,
 				claims_user_id = $9, claims_username = $10, claims_preferred_username = $11,
 				claims_email = $12, claims_email_verified = $13,
-				claims_groups = $14,
-				connector_id = $15, connector_data = $16,
-				expiry = $17,
-				code_challenge = $18, code_challenge_method = $19,
-				hmac_key = $20
-			where id = $21;
+				claims_groups = $14, claims_picture = $15,
+				connector_id = $16, connector_data = $17,
+				expiry = $18,
+				code_challenge = $19, code_challenge_method = $20,
+				hmac_key = $21
+			where id = $22;
 		`,
 			a.ClientID, encoder(a.ResponseTypes), encoder(a.Scopes), a.RedirectURI, a.Nonce, a.State,
 			a.ForceApprovalPrompt, a.LoggedIn,
 			a.Claims.UserID, a.Claims.Username, a.Claims.PreferredUsername,
 			a.Claims.Email, a.Claims.EmailVerified,
-			encoder(a.Claims.Groups),
+			encoder(a.Claims.Groups), a.Claims.Picture,
 			a.ConnectorID, a.ConnectorData,
 			a.Expiry,
 			a.PKCE.CodeChallenge, a.PKCE.CodeChallengeMethod, a.HMACKey,
@@ -210,7 +210,7 @@ func getAuthRequest(ctx context.Context, q querier, id string) (a storage.AuthRe
 			id, client_id, response_types, scopes, redirect_uri, nonce, state,
 			force_approval_prompt, logged_in,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data, expiry,
 			code_challenge, code_challenge_method, hmac_key
 		from auth_request where id = $1;
@@ -219,7 +219,7 @@ func getAuthRequest(ctx context.Context, q querier, id string) (a storage.AuthRe
 		&a.ForceApprovalPrompt, &a.LoggedIn,
 		&a.Claims.UserID, &a.Claims.Username, &a.Claims.PreferredUsername,
 		&a.Claims.Email, &a.Claims.EmailVerified,
-		decoder(&a.Claims.Groups),
+		decoder(&a.Claims.Groups), &a.Claims.Picture,
 		&a.ConnectorID, &a.ConnectorData, &a.Expiry,
 		&a.PKCE.CodeChallenge, &a.PKCE.CodeChallengeMethod, &a.HMACKey,
 	)
@@ -237,16 +237,16 @@ func (c *conn) CreateAuthCode(ctx context.Context, a storage.AuthCode) error {
 		insert into auth_code (
 			id, client_id, scopes, nonce, redirect_uri,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data,
 			expiry,
 			code_challenge, code_challenge_method
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);
 	`,
 		a.ID, a.ClientID, encoder(a.Scopes), a.Nonce, a.RedirectURI, a.Claims.UserID,
 		a.Claims.Username, a.Claims.PreferredUsername, a.Claims.Email, a.Claims.EmailVerified,
-		encoder(a.Claims.Groups), a.ConnectorID, a.ConnectorData, a.Expiry,
+		encoder(a.Claims.Groups), a.Claims.Picture, a.ConnectorID, a.ConnectorData, a.Expiry,
 		a.PKCE.CodeChallenge, a.PKCE.CodeChallengeMethod,
 	)
 	if err != nil {
@@ -263,7 +263,7 @@ func (c *conn) GetAuthCode(ctx context.Context, id string) (a storage.AuthCode, 
 		select
 			id, client_id, scopes, nonce, redirect_uri,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data,
 			expiry,
 			code_challenge, code_challenge_method
@@ -271,7 +271,7 @@ func (c *conn) GetAuthCode(ctx context.Context, id string) (a storage.AuthCode, 
 	`, id).Scan(
 		&a.ID, &a.ClientID, decoder(&a.Scopes), &a.Nonce, &a.RedirectURI, &a.Claims.UserID,
 		&a.Claims.Username, &a.Claims.PreferredUsername, &a.Claims.Email, &a.Claims.EmailVerified,
-		decoder(&a.Claims.Groups), &a.ConnectorID, &a.ConnectorData, &a.Expiry,
+		decoder(&a.Claims.Groups), &a.Claims.Picture, &a.ConnectorID, &a.ConnectorData, &a.Expiry,
 		&a.PKCE.CodeChallenge, &a.PKCE.CodeChallengeMethod,
 	)
 	if err != nil {
@@ -288,16 +288,16 @@ func (c *conn) CreateRefresh(ctx context.Context, r storage.RefreshToken) error 
 		insert into refresh_token (
 			id, client_id, scopes, nonce,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data,
 			token, obsolete_token, created_at, last_used
 		)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);
 	`,
 		r.ID, r.ClientID, encoder(r.Scopes), r.Nonce,
 		r.Claims.UserID, r.Claims.Username, r.Claims.PreferredUsername,
 		r.Claims.Email, r.Claims.EmailVerified,
-		encoder(r.Claims.Groups),
+		encoder(r.Claims.Groups), r.Claims.Picture,
 		r.ConnectorID, r.ConnectorData,
 		r.Token, r.ObsoleteToken, r.CreatedAt, r.LastUsed,
 	)
@@ -331,19 +331,20 @@ func (c *conn) UpdateRefreshToken(ctx context.Context, id string, updater func(o
 				claims_email = $7,
 				claims_email_verified = $8,
 				claims_groups = $9,
-				connector_id = $10,
-				connector_data = $11,
-				token = $12,
-                obsolete_token = $13,
-				created_at = $14,
-				last_used = $15
+				claims_picture = $10,
+				connector_id = $11,
+				connector_data = $12,
+				token = $13,
+                obsolete_token = $14,
+				created_at = $15,
+				last_used = $16
 			where
-				id = $16
+				id = $17
 		`,
 			r.ClientID, encoder(r.Scopes), r.Nonce,
 			r.Claims.UserID, r.Claims.Username, r.Claims.PreferredUsername,
 			r.Claims.Email, r.Claims.EmailVerified,
-			encoder(r.Claims.Groups),
+			encoder(r.Claims.Groups), r.Claims.Picture,
 			r.ConnectorID, r.ConnectorData,
 			r.Token, r.ObsoleteToken, r.CreatedAt, r.LastUsed, id,
 		)
@@ -364,7 +365,7 @@ func getRefresh(ctx context.Context, q querier, id string) (storage.RefreshToken
 			id, client_id, scopes, nonce,
 			claims_user_id, claims_username, claims_preferred_username,
 			claims_email, claims_email_verified,
-			claims_groups,
+			claims_groups, claims_picture,
 			connector_id, connector_data,
 			token, obsolete_token, created_at, last_used
 		from refresh_token where id = $1;
@@ -376,7 +377,7 @@ func (c *conn) ListRefreshTokens(ctx context.Context) ([]storage.RefreshToken, e
 		select
 			id, client_id, scopes, nonce,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			connector_id, connector_data,
 			token, obsolete_token, created_at, last_used
 		from refresh_token;
@@ -405,7 +406,7 @@ func scanRefresh(s scanner) (r storage.RefreshToken, err error) {
 		&r.ID, &r.ClientID, decoder(&r.Scopes), &r.Nonce,
 		&r.Claims.UserID, &r.Claims.Username, &r.Claims.PreferredUsername,
 		&r.Claims.Email, &r.Claims.EmailVerified,
-		decoder(&r.Claims.Groups),
+		decoder(&r.Claims.Groups), &r.Claims.Picture,
 		&r.ConnectorID, &r.ConnectorData,
 		&r.Token, &r.ObsoleteToken, &r.CreatedAt, &r.LastUsed,
 	)
@@ -605,13 +606,13 @@ func (c *conn) CreatePassword(ctx context.Context, p storage.Password) error {
 	p.Email = strings.ToLower(p.Email)
 	_, err := c.Exec(`
 		insert into password (
-			email, hash, username, preferred_username, user_id, groups, name, email_verified
+			email, hash, username, preferred_username, user_id, groups, name, email_verified, picture
 		)
 		values (
-			$1, $2, $3, $4, $5, $6, $7, $8
+			$1, $2, $3, $4, $5, $6, $7, $8, $9
 		);
 	`,
-		p.Email, p.Hash, p.Username, p.PreferredUsername, p.UserID, encoder(p.Groups), p.Name, p.EmailVerified,
+		p.Email, p.Hash, p.Username, p.PreferredUsername, p.UserID, encoder(p.Groups), p.Name, p.EmailVerified, p.Picture,
 	)
 	if err != nil {
 		if c.alreadyExistsCheck(err) {
@@ -636,10 +637,10 @@ func (c *conn) UpdatePassword(ctx context.Context, email string, updater func(p 
 		_, err = tx.Exec(`
 			update password
 			set
-				hash = $1, username = $2, preferred_username = $3, user_id = $4, groups = $5, name = $6, email_verified = $7
-			where email = $8;
+				hash = $1, username = $2, preferred_username = $3, user_id = $4, groups = $5, name = $6, email_verified = $7, picture = $8
+			where email = $9;
 		`,
-			np.Hash, np.Username, np.PreferredUsername, np.UserID, encoder(np.Groups), np.Name, np.EmailVerified, p.Email,
+			np.Hash, np.Username, np.PreferredUsername, np.UserID, encoder(np.Groups), np.Name, np.EmailVerified, np.Picture, p.Email,
 		)
 		if err != nil {
 			return fmt.Errorf("update password: %v", err)
@@ -655,7 +656,7 @@ func (c *conn) GetPassword(ctx context.Context, email string) (storage.Password,
 func getPassword(ctx context.Context, q querier, email string) (p storage.Password, err error) {
 	return scanPassword(q.QueryRow(`
 		select
-			email, hash, username, preferred_username, user_id, groups, name, email_verified
+			email, hash, username, preferred_username, user_id, groups, name, email_verified, picture
 		from password where email = $1;
 	`, strings.ToLower(email)))
 }
@@ -663,7 +664,7 @@ func getPassword(ctx context.Context, q querier, email string) (p storage.Passwo
 func (c *conn) ListPasswords(ctx context.Context) ([]storage.Password, error) {
 	rows, err := c.Query(`
 		select
-			email, hash, username, preferred_username, user_id, groups, name, email_verified
+			email, hash, username, preferred_username, user_id, groups, name, email_verified, picture
 		from password;
 	`)
 	if err != nil {
@@ -688,7 +689,7 @@ func (c *conn) ListPasswords(ctx context.Context) ([]storage.Password, error) {
 func scanPassword(s scanner) (p storage.Password, err error) {
 	var emailVerified sql.NullBool
 	err = s.Scan(
-		&p.Email, &p.Hash, &p.Username, &p.PreferredUsername, &p.UserID, decoder(&p.Groups), &p.Name, &emailVerified,
+		&p.Email, &p.Hash, &p.Username, &p.PreferredUsername, &p.UserID, decoder(&p.Groups), &p.Name, &emailVerified, &p.Picture,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -780,17 +781,17 @@ func (c *conn) CreateUserIdentity(ctx context.Context, u storage.UserIdentity) e
 		insert into user_identity (
 			user_id, connector_id,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			consents,
 			created_at, last_login, blocked_until
 		)
 		values (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 		);
 	`,
 		u.UserID, u.ConnectorID,
 		u.Claims.UserID, u.Claims.Username, u.Claims.PreferredUsername,
-		u.Claims.Email, u.Claims.EmailVerified, encoder(u.Claims.Groups),
+		u.Claims.Email, u.Claims.EmailVerified, encoder(u.Claims.Groups), u.Claims.Picture,
 		encoder(u.Consents),
 		u.CreatedAt, u.LastLogin, u.BlockedUntil,
 	)
@@ -823,14 +824,15 @@ func (c *conn) UpdateUserIdentity(ctx context.Context, userID, connectorID strin
 				claims_email = $4,
 				claims_email_verified = $5,
 				claims_groups = $6,
-				consents = $7,
-				created_at = $8,
-				last_login = $9,
-				blocked_until = $10
-			where user_id = $11 AND connector_id = $12;
+				claims_picture = $7,
+				consents = $8,
+				created_at = $9,
+				last_login = $10,
+				blocked_until = $11
+			where user_id = $12 AND connector_id = $13;
 		`,
 			newIdentity.Claims.UserID, newIdentity.Claims.Username, newIdentity.Claims.PreferredUsername,
-			newIdentity.Claims.Email, newIdentity.Claims.EmailVerified, encoder(newIdentity.Claims.Groups),
+			newIdentity.Claims.Email, newIdentity.Claims.EmailVerified, encoder(newIdentity.Claims.Groups), newIdentity.Claims.Picture,
 			encoder(newIdentity.Consents),
 			newIdentity.CreatedAt, newIdentity.LastLogin, newIdentity.BlockedUntil,
 			u.UserID, u.ConnectorID,
@@ -851,7 +853,7 @@ func getUserIdentity(ctx context.Context, q querier, userID, connectorID string)
 		select
 			user_id, connector_id,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			consents,
 			created_at, last_login, blocked_until
 		from user_identity
@@ -864,7 +866,7 @@ func (c *conn) ListUserIdentities(ctx context.Context) ([]storage.UserIdentity, 
 		select
 			user_id, connector_id,
 			claims_user_id, claims_username, claims_preferred_username,
-			claims_email, claims_email_verified, claims_groups,
+			claims_email, claims_email_verified, claims_groups, claims_picture,
 			consents,
 			created_at, last_login, blocked_until
 		from user_identity;
@@ -892,7 +894,7 @@ func scanUserIdentity(s scanner) (u storage.UserIdentity, err error) {
 	err = s.Scan(
 		&u.UserID, &u.ConnectorID,
 		&u.Claims.UserID, &u.Claims.Username, &u.Claims.PreferredUsername,
-		&u.Claims.Email, &u.Claims.EmailVerified, decoder(&u.Claims.Groups),
+		&u.Claims.Email, &u.Claims.EmailVerified, decoder(&u.Claims.Groups), &u.Claims.Picture,
 		decoder(&u.Consents),
 		&u.CreatedAt, &u.LastLogin, &u.BlockedUntil,
 	)

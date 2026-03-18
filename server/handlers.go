@@ -122,7 +122,7 @@ func (s *Server) constructDiscovery(ctx context.Context) discovery {
 		AuthMethods:       []string{"client_secret_basic", "client_secret_post"},
 		Claims: []string{
 			"iss", "sub", "aud", "iat", "exp", "email", "email_verified",
-			"locale", "name", "preferred_username", "at_hash",
+			"locale", "name", "preferred_username", "picture", "at_hash",
 		},
 	}
 
@@ -680,6 +680,7 @@ func (s *Server) finalizeLogin(ctx context.Context, identity connector.Identity,
 		PreferredUsername: identity.PreferredUsername,
 		Email:             identity.Email,
 		EmailVerified:     identity.EmailVerified,
+		Picture:           identity.Picture,
 		Groups:            identity.Groups,
 	}
 
@@ -1690,6 +1691,7 @@ func (s *Server) handleTokenExchange(w http.ResponseWriter, r *http.Request, cli
 		UserID:            identity.UserID,
 		Username:          identity.Username,
 		PreferredUsername: identity.PreferredUsername,
+		Picture:           identity.Picture,
 		Email:             identity.Email,
 		EmailVerified:     identity.EmailVerified,
 		Groups:            identity.Groups,

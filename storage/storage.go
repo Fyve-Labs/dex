@@ -194,6 +194,7 @@ type Claims struct {
 	PreferredUsername string
 	Email             string
 	EmailVerified     bool
+	Picture           string
 
 	Groups []string
 }
@@ -413,6 +414,9 @@ type Password struct {
 	// Optional value for OIDC "email_verified" claim.
 	// Defaults to true for backwards compatibility when nil.
 	EmailVerified *bool `json:"emailVerified,omitempty"`
+
+	// Optional value for OIDC "picture" claim.
+	Picture string `json:"picture"`
 
 	// Randomly generated user ID. This is NOT the primary ID of the Password object.
 	UserID string `json:"userID"`

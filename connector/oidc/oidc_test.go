@@ -61,6 +61,7 @@ func TestHandleCallback(t *testing.T) {
 		expectUserName            string
 		expectGroups              []string
 		expectPreferredUsername   string
+		expectPicture             string
 		expectedEmailField        string
 		token                     map[string]interface{}
 		groupsRegex               string
@@ -68,6 +69,7 @@ func TestHandleCallback(t *testing.T) {
 		groupsPrefix              string
 		groupsSuffix              string
 		pkceChallenge             string
+		pictureKey                string
 	}{
 		{
 			name:               "simpleCase",
@@ -76,6 +78,7 @@ func TestHandleCallback(t *testing.T) {
 			expectUserID:       "subvalue",
 			expectUserName:     "namevalue",
 			expectGroups:       []string{"group1", "group2"},
+			expectPicture:      "picturevalue",
 			expectedEmailField: "emailvalue",
 			token: map[string]interface{}{
 				"sub":            "subvalue",
@@ -83,6 +86,39 @@ func TestHandleCallback(t *testing.T) {
 				"groups":         []string{"group1", "group2"},
 				"email":          "emailvalue",
 				"email_verified": true,
+				"picture":        "picturevalue",
+			},
+		},
+		{
+			name:               "customPictureClaim",
+			pictureKey:         "avatar",
+			expectUserID:       "subvalue",
+			expectUserName:     "namevalue",
+			expectPicture:      "avatarvalue",
+			expectedEmailField: "emailvalue",
+			token: map[string]interface{}{
+				"sub":            "subvalue",
+				"name":           "namevalue",
+				"email":          "emailvalue",
+				"email_verified": true,
+				"avatar":         "avatarvalue",
+			},
+		},
+		{
+			name:                 "customPictureClaimWithOverride",
+			overrideClaimMapping: true,
+			pictureKey:           "avatar",
+			expectUserID:         "subvalue",
+			expectUserName:       "namevalue",
+			expectPicture:        "avatarvalue",
+			expectedEmailField:   "emailvalue",
+			token: map[string]interface{}{
+				"sub":            "subvalue",
+				"name":           "namevalue",
+				"email":          "emailvalue",
+				"email_verified": true,
+				"picture":        "picturevalue",
+				"avatar":         "avatarvalue",
 			},
 		},
 		{
@@ -555,6 +591,7 @@ func TestHandleCallback(t *testing.T) {
 			config.ClaimMapping.PreferredUsernameKey = tc.preferredUsernameKey
 			config.ClaimMapping.EmailKey = tc.emailKey
 			config.ClaimMapping.GroupsKey = tc.groupsKey
+			config.ClaimMapping.PictureKey = tc.pictureKey
 			config.ClaimMutations.NewGroupFromClaims = tc.newGroupFromClaims
 			config.ClaimMutations.FilterGroupClaims.GroupsFilter = tc.groupsRegex
 			config.ClaimMutations.ModifyGroupNames.Prefix = tc.groupsPrefix
@@ -582,6 +619,7 @@ func TestHandleCallback(t *testing.T) {
 			expectEquals(t, identity.UserID, tc.expectUserID)
 			expectEquals(t, identity.Username, tc.expectUserName)
 			expectEquals(t, identity.PreferredUsername, tc.expectPreferredUsername)
+			expectEquals(t, identity.Picture, tc.expectPicture)
 			expectEquals(t, identity.Email, tc.expectedEmailField)
 			expectEquals(t, identity.EmailVerified, true)
 			expectEquals(t, identity.Groups, tc.expectGroups)

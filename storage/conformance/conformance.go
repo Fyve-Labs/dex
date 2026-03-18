@@ -108,6 +108,7 @@ func testAuthRequestCRUD(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 		PKCE:    codeChallenge,
 		HMACKey: []byte("hmac_key"),
@@ -203,6 +204,7 @@ func testAuthCodeCRUD(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 	}
 
@@ -350,6 +352,7 @@ func testRefreshTokenCRUD(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 		ConnectorData: []byte(`{"some":"data"}`),
 	}
@@ -405,6 +408,7 @@ func testRefreshTokenCRUD(t *testing.T, s storage.Storage) {
 			Email:         "john.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 		ConnectorData: []byte(`{"some":"data"}`),
 	}
@@ -471,6 +475,7 @@ func testPasswordCRUD(t *testing.T, s storage.Storage) {
 		EmailVerified:     boolPtr(true),
 		UserID:            "foobar",
 		Groups:            []string{"team-a", "team-a/admins"},
+		Picture:           "https://example.com/jane.png",
 	}
 	if err := s.CreatePassword(ctx, password1); err != nil {
 		t.Fatalf("create password token: %v", err)
@@ -798,6 +803,7 @@ func testGC(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 	}
 
@@ -848,6 +854,7 @@ func testGC(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 		HMACKey: []byte("hmac_key"),
 	}
@@ -984,6 +991,7 @@ func testTimezones(t *testing.T, s storage.Storage) {
 			Email:         "jane.doe@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 	}
 	if err := s.CreateAuthCode(ctx, c); err != nil {
@@ -1101,6 +1109,7 @@ func testUserIdentityCRUD(t *testing.T, s storage.Storage) {
 			Email:         "jane@example.com",
 			EmailVerified: true,
 			Groups:        []string{"a", "b"},
+			Picture:       "https://example.com/jane.png",
 		},
 		Consents:     make(map[string][]string),
 		CreatedAt:    now,

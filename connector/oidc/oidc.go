@@ -116,6 +116,9 @@ type Config struct {
 
 		// Configurable key which contains the groups claims
 		GroupsKey string `json:"groups"` // defaults to "groups"
+
+		// Configurable key which contains the picture claims
+		PictureKey string `json:"picture"` // defaults to "picture"
 	} `json:"claimMapping"`
 
 	// ClaimMutations holds all claim mutations options
@@ -370,6 +373,7 @@ func (c *Config) Open(id string, logger *slog.Logger) (conn connector.Connector,
 		preferredUsernameKey:      c.ClaimMapping.PreferredUsernameKey,
 		emailKey:                  c.ClaimMapping.EmailKey,
 		groupsKey:                 c.ClaimMapping.GroupsKey,
+		pictureKey:                c.ClaimMapping.PictureKey,
 		newGroupFromClaims:        c.ClaimMutations.NewGroupFromClaims,
 		groupsFilter:              groupsFilter,
 		groupsPrefix:              c.ClaimMutations.ModifyGroupNames.Prefix,
@@ -404,6 +408,7 @@ type oidcConnector struct {
 	preferredUsernameKey      string
 	emailKey                  string
 	groupsKey                 string
+	pictureKey                string
 	newGroupFromClaims        []NewGroupFromClaims
 	groupsFilter              *regexp.Regexp
 	groupsPrefix              string
@@ -719,12 +724,18 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 		return identity, fmt.Errorf("oidc: failed to encode connector data: %v", err)
 	}
 
+	picture, found := claims["picture"].(string)
+	if (!found || c.overrideClaimMapping) && c.pictureKey != "" {
+		picture, _ = claims[c.pictureKey].(string)
+	}
+
 	identity = connector.Identity{
 		UserID:            subject,
 		Username:          name,
 		PreferredUsername: preferredUsername,
 		Email:             email,
 		EmailVerified:     emailVerified,
+		Picture:           picture,
 		Groups:            groups,
 		ConnectorData:     connData,
 	}
