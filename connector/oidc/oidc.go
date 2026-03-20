@@ -677,7 +677,10 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 
 			if len(groupMatches) == 0 {
 				// No group membership matches found, disallowing
-				return identity, fmt.Errorf("user not a member of allowed groups")
+				return identity, &connector.UserNotInRequiredGroupsError{
+					UserID: identity.UserID,
+					Groups: c.allowedGroups,
+				}
 			}
 
 			groups = groupMatches
