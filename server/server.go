@@ -636,6 +636,7 @@ func (db passwordDB) Login(ctx context.Context, s connector.Scopes, email, passw
 		Email:             p.Email,
 		EmailVerified:     resolvePasswordEmailVerified(p),
 		Groups:            p.Groups,
+		Picture:           p.Picture,
 	}, true, nil
 }
 
